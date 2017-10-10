@@ -1,7 +1,4 @@
-<!DOCTYPE html>
-<!-- saved from url=(0037)http://www.tapir.me.uk/demo/promises/ -->
 <html lang="en">
-
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
 	<title>Promises Example</title>
@@ -10,22 +7,20 @@
 		var _app;
 
 		_app = {
-			"url": "https://data.gov.uk/data/api/service/transport/naptan_ferry_ports/postcode?"
+			"url": "http://chroniclingamerica.loc.gov/suggest/titles/?q="
 		};
 
 		function find(_event) {
 			var endPoint;
-			var postcode;
-			var distance;
+			var query;
 			var promise;
 			var infoPanel;
 			var STATUS_OK = 200;
 
 			infoPanel = document.getElementById("info");
-			postcode = document.getElementById("postcode").value;
-			distance = document.getElementById("distance").value;
+			query = document.getElementById("query").value;
 
-			endPoint = _app.url + "postcode=" + postcode + "&" + "distance=" + distance;
+			endPoint = _app.url + query;
 			promise = new Promise(function(resolve, reject) {
 				var request;
 				var responseJson;
@@ -37,10 +32,10 @@
 					// so check the status
 					if (request.status === STATUS_OK) {
 						responseJson = JSON.parse(request.response);
-						if (responseJson.success === true) {
-							resolve(responseJson.result);
+						if (responseJson) {
+							resolve(responseJson[1]);
 						} else {
-							reject(new Error(responseJson.error));
+							reject(new Error("Bad query"));
 						}
 					} else {
 						reject(new Error(request.statusText));
@@ -61,9 +56,9 @@
 
 					infoPanel.innerHTML = "";
 
-					results.forEach(function(_ferryTerminal) {
+					results.forEach(function(_img) {
 						line = document.createElement("div");
-						line.textContent = JSON.stringify(_ferryTerminal);
+						line.textContent = JSON.stringify(_img);
 						infoPanel.appendChild(line);
 					});
 				})
@@ -80,17 +75,14 @@
 	</script>
 </head>
 
-<body onload="setup()" cz-shortcut-listen="true">
+<body>
 	<h1>Promises example</h1>
-	<p>This example uses the UK government open API for transport found at <a href="https://data.gov.uk/data/api/transport">https://data.gov.uk/data/api/transport</a>. This API will find ferry ports near to a postcode given a distance in kilometers.</p>
-	<h2>Post code</h2>
-	<div><input id="postcode" type="text" placeholder="Enter a postcode"></div>
-	<h2>Radius</h2>
-	<div><input id="distance" type="text" placeholder="kilometre radius"></div>
+	<p>This example uses Chronicling America API found at <a href="http://chroniclingamerica.loc.gov/about/api/">http://chroniclingamerica.loc.gov/about/api/</a>. This API will return historic publication titles.</p>
+	<h2>query e.g. New York Times</h2>
+	<div><input id="query" type="text" placeholder="Enter a query"></div>
 	<button id="find" onclick="find()">Find</button>
 	<h2>Results</h2>
 	<div id="info">No results.</div>
-
 </body>
 
 </html>
