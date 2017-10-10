@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<!-- saved from url=(0037)http://www.tapir.me.uk/demo/promises/ -->
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+	<title>Promises Example</title>
+	<link rel="stylesheet" type="text/css" href="index.css">
+	<script>
+		var _app;
+
+		_app = {
+			"url": "https://data.gov.uk/data/api/service/transport/naptan_ferry_ports/postcode?"
+		};
+
+		function find(_event) {
+			var endPoint;
+			var postcode;
+			var distance;
+			var promise;
+			var infoPanel;
+			var STATUS_OK = 200;
+
+			infoPanel = document.getElementById("info");
+			postcode = document.getElementById("postcode").value;
+			distance = document.getElementById("distance").value;
+
+			endPoint = _app.url + "postcode=" + postcode + "&" + "distance=" + distance;
+			promise = new Promise(function(resolve, reject) {
+				var request;
+				var responseJson;
+				request = new XMLHttpRequest();
+				request.open("GET", endPoint);
+
+				request.onload = function() {
+					// This is called even on 404 etc
+					// so check the status
+					if (request.status === STATUS_OK) {
+						responseJson = JSON.parse(request.response);
+						if (responseJson.success === true) {
+							resolve(responseJson.result);
+						} else {
+							reject(new Error(responseJson.error));
+						}
+					} else {
+						reject(new Error(request.statusText));
+					}
+				};
+
+				// Handle network errors
+				request.onerror = function() {
+					reject(new Error("Network Error"));
+				};
+
+				// Make the request
+				request.send();
+			});
+
+			promise.then(function(results) {
+					var line;
+
+					infoPanel.innerHTML = "";
+
+					results.forEach(function(_ferryTerminal) {
+						line = document.createElement("div");
+						line.textContent = JSON.stringify(_ferryTerminal);
+						infoPanel.appendChild(line);
+					});
+				})
+				.catch(function(reason) {
+					var line;
+
+					infoPanel.innerHTML = "";
+					line = document.createElement("div");
+					line.className = "error";
+					line.textContent = reason;
+					infoPanel.appendChild(line);
+				});
+		}
+	</script>
+</head>
+
+<body onload="setup()" cz-shortcut-listen="true">
+	<h1>Promises example</h1>
+	<p>This example uses the UK government open API for transport found at <a href="https://data.gov.uk/data/api/transport">https://data.gov.uk/data/api/transport</a>. This API will find ferry ports near to a postcode given a distance in kilometers.</p>
+	<h2>Post code</h2>
+	<div><input id="postcode" type="text" placeholder="Enter a postcode"></div>
+	<h2>Radius</h2>
+	<div><input id="distance" type="text" placeholder="kilometre radius"></div>
+	<button id="find" onclick="find()">Find</button>
+	<h2>Results</h2>
+	<div id="info">No results.</div>
+
+</body>
+
+</html>
